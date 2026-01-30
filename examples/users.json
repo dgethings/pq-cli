@@ -1,0 +1,42 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "roles": ["admin", "user"],
+      "active": true,
+      "settings": {
+        "theme": "dark",
+        "notifications": true
+      }
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "roles": ["user"],
+      "active": true,
+      "settings": {
+        "theme": "light",
+        "notifications": false
+      }
+    },
+    {
+      "id": 3,
+      "name": "Bob Johnson",
+      "email": "bob@example.com",
+      "roles": ["user"],
+      "active": false,
+      "settings": {
+        "theme": "dark",
+        "notifications": true
+      }
+    }
+  ],
+  "system": {
+    "version": "2.1.0",
+    "environment": "production",
+    "features": ["api", "web", "mobile"]
+  }
+}

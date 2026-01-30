@@ -1,0 +1,18 @@
+{
+  "products": [
+    {"id": 1, "name": "Laptop", "price": 999.99, "category": "Electronics", "stock": 50},
+    {"id": 2, "name": "Mouse", "price": 29.99, "category": "Electronics", "stock": 200},
+    {"id": 3, "name": "Desk", "price": 299.99, "category": "Furniture", "stock": 25},
+    {"id": 4, "name": "Chair", "price": 149.99, "category": "Furniture", "stock": 100},
+    {"id": 5, "name": "Monitor", "price": 449.99, "category": "Electronics", "stock": 75}
+  ],
+  "categories": [
+    {"id": 1, "name": "Electronics", "description": "Electronic devices and accessories"},
+    {"id": 2, "name": "Furniture", "description": "Office and home furniture"}
+  ],
+  "stats": {
+    "total_products": 5,
+    "total_categories": 2,
+    "total_value": 1929.95
+  }
+}

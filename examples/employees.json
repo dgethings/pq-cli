@@ -1,0 +1,44 @@
+{
+  "employees": [
+    {
+      "id": "E001",
+      "name": "Alice Johnson",
+      "department": "Engineering",
+      "salary": 120000,
+      "hire_date": "2020-01-15",
+      "skills": ["Python", "JavaScript", "Go"],
+      "projects": [
+        {"name": "Project A", "role": "Lead", "status": "completed"},
+        {"name": "Project B", "role": "Contributor", "status": "in_progress"}
+      ]
+    },
+    {
+      "id": "E002",
+      "name": "Bob Smith",
+      "department": "Marketing",
+      "salary": 85000,
+      "hire_date": "2021-03-10",
+      "skills": ["SEO", "Content", "Analytics"],
+      "projects": [
+        {"name": "Project C", "role": "Lead", "status": "completed"}
+      ]
+    },
+    {
+      "id": "E003",
+      "name": "Charlie Brown",
+      "department": "Engineering",
+      "salary": 110000,
+      "hire_date": "2019-06-20",
+      "skills": ["Python", "AWS", "Docker"],
+      "projects": [
+        {"name": "Project A", "role": "Contributor", "status": "completed"},
+        {"name": "Project D", "role": "Lead", "status": "planning"}
+      ]
+    }
+  ],
+  "departments": [
+    {"name": "Engineering", "budget": 500000},
+    {"name": "Marketing", "budget": 200000},
+    {"name": "Sales", "budget": 300000}
+  ]
+}
