@@ -11,7 +11,7 @@ app = typer.Typer()
 
 
 def main(
-    file_path: typer.FileText | None = typer.Argument(
+    file_path: str = typer.Argument(
         None,
         help="Path to JSON file to query",
     ),
@@ -19,11 +19,11 @@ def main(
     """Main CLI entry point.
 
     Args:
-        file_path: Optional file path argument (typer.FileText)
+        file_path: Optional file path argument
     """
     try:
         if file_path:
-            data = load_document(file_path=Path(file_path.name))
+            data = load_document(file_path=Path(file_path))
         else:
             if sys.stdin.isatty():
                 typer.echo(
