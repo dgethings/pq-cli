@@ -1,0 +1,12 @@
+{
+  "items": [
+    {"name": "Alice", "age": 30, "city": "NYC", "active": true},
+    {"name": "Bob", "age": 25, "city": "LA", "active": false},
+    {"name": "Charlie", "age": 35, "city": "NYC", "active": true}
+  ],
+  "metadata": {
+    "count": 3,
+    "version": "1.0",
+    "updated": "2026-01-30"
+  }
+}

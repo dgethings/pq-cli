@@ -1,0 +1,54 @@
+/* CSS for Textual UI */
+
+QueryPrompt {
+    dock: top;
+    height: 3;
+}
+
+#prompt {
+    content-align: center middle;
+    width: 3;
+    min-width: 3;
+}
+
+#query-input {
+    width: 1fr;
+}
+
+#result-display {
+    height: 1fr;
+}
+
+#footer {
+    dock: bottom;
+    height: 1;
+}
+
+#status-bar {
+    dock: bottom;
+    height: 1;
+    text-style: dim;
+}
+
+#suggestion-box {
+    dock: top;
+    height: 10;
+    display: none;
+}
+
+#suggestion-box.visible {
+    display: block;
+}
+
+.error {
+    color: red;
+    text-style: bold;
+}
+
+.success {
+    color: green;
+}
+
+.info {
+    color: cyan;
+}

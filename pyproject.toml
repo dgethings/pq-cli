@@ -1,0 +1,25 @@
+[project]
+name = "pq"
+version = "0.1.0"
+description = "Interactive Python query tool for structured documents"
+readme = "README.md"
+authors = [
+    { name = "David Gethings", email = "dgethings@me.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "textual>=0.50.0",
+    "typer>=0.21.0",
+]
+
+[project.scripts]
+pq = "pq.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.9.27,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "textual-dev>=1.8.0",
+]
