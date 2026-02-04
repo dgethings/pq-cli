@@ -67,7 +67,7 @@ def evaluate_query(expression: str, data: dict[str, Any]) -> dict[str, Any]:
         )
     except NameError as e:
         name = str(e).split("'")[1]
-        available = ", ".join(sorted(ALLOWED_BUILTINS.keys())[:5])
+        available = ", ".join(sorted(ALLOWED_BUILTINS.keys()))
         raise QueryEvaluationError(
             f"'{name}' is not available. Use '_' to access the document. Available functions: {available}, ..."
         )
