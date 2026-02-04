@@ -5,6 +5,9 @@ from typing import Any
 import json
 import sys
 
+import typer
+import yaml
+
 from pq.types import FileTypes
 
 
@@ -52,8 +55,17 @@ def _load_from_file(file_path: Path) -> dict[str, Any]:
         )
 
     try:
-        content = file_path.read_text(encoding="utf-8")
-        return _parse_json(content, str(file_path))
+        match file_path.suffix:
+            case ".json":
+                content = file_path.read_text(encoding="utf-8")
+                return _parse_json(content, str(file_path))
+            case ".yaml" | ".yml":
+                content = file_path.read_text(encoding="utf-8")
+                return _parse_yaml(content, str(file_path))
+            case _:
+                raise typer.BadParameter(
+                    message=f"file type {file_path.suffix} is currently not supported"
+                )
     except UnicodeDecodeError:
         raise DocumentLoadError(f"File encoding error: {file_path}")
     except OSError as e:
@@ -65,6 +77,8 @@ def _load_from_string(content: str, format: FileTypes) -> dict[str, Any]:
     match format:
         case "json":
             return _parse_json(content, "stdin")
+        case "yaml":
+            return _parse_yaml(content, "stdin")
         case _:
             raise RuntimeError(f"{format} currently not supported")
 
@@ -93,6 +107,30 @@ def _parse_json(content: str, source: str) -> dict[str, Any]:
         raise DocumentLoadError(
             f"Invalid JSON in {source}: {e.msg} at line {e.lineno}, column {e.colno}"
         )
+
+
+def _parse_yaml(content: str, source: str) -> dict[str, Any]:
+    """Parse YAML content.
+
+    Args:
+        content: YAML string to parse
+        source: Source description for error messages
+
+    Returns:
+        Parsed YAML as dictionary
+
+    Raises:
+        DocumentLoadError: If YAML is invalid
+    """
+    try:
+        data = yaml.safe_load(content)
+        if not isinstance(data, dict):
+            raise DocumentLoadError(
+                f"Document must be a YAML object (dict), got {type(data).__name__}"
+            )
+        return data
+    except yaml.YAMLError as e:
+        raise DocumentLoadError(f"Invalid YAML in {source}: {e}")
 
 
 def read_stdin() -> str:
