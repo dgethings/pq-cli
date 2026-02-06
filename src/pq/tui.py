@@ -1,7 +1,5 @@
 """Main Textual application module."""
 
-from pathlib import Path
-import sys
 from typing import Any
 
 from textual.app import App, ComposeResult
@@ -20,7 +18,11 @@ class QueryPrompt(Widget):
     def compose(self) -> ComposeResult:
         with Horizontal():
             yield Static("> ", id="prompt")
-            yield Input(placeholder="Enter Python expression", id="query-input")
+            yield Input(
+                value="_",
+                placeholder="Enter Python expression, use '_' to access data",
+                id="query-input",
+            )
 
 
 class ResultDisplay(Static):
@@ -143,6 +145,7 @@ class QueryApp(App[None]):
     def action_accept_query(self) -> None:
         """Accept the current query and exit."""
         if self.final_result is not None:
+            return self.final_result
             OutputFormatter.print_to_stdout(self.final_result)
             self.exit(result=self.final_result, return_code=0)
         else:
