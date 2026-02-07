@@ -31,13 +31,13 @@ class QueryPrompt(Widget):
         cast(QueryApp, self.app).action_accept_query()
 
     def compose(self) -> ComposeResult:
-        with Horizontal():
-            yield Static("> ", id="prompt")
-            yield Input(
-                value=self.query_string,
-                placeholder="Enter Python expression, use '_' to access data",
-                id="query-input",
-            )
+        # with Horizontal():
+        #     yield Static("> ", id="prompt")
+        yield Input(
+            value=self.query_string,
+            placeholder="Enter Python expression, use '_' to access data",
+            id="query-input",
+        )
 
 
 class ResultDisplay(Static):
