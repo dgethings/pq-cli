@@ -1,6 +1,6 @@
 [project]
 name = "pq"
-version = "0.1.0"
+version = "0.1.1"
 description = "Interactive Python query tool for structured documents"
 readme = "README.md"
 authors = [
@@ -40,3 +40,8 @@ commit_message = "chore(release): {version}"
 tag_format = "v{version}"
 hvcs = "github"
 
+[semantic_release.remote]
+ignore_token_for_push = true
+
+[semantic_release.changelog.default_templates]
+mask_initial_release = false
