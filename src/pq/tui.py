@@ -1,8 +1,10 @@
 """Main Textual application module."""
 
-from typing import Any
+from typing import Any, ClassVar, cast
 
+from textual._path import CSSPathType
 from textual.app import App, ComposeResult
+from textual.binding import BindingType
 from textual.containers import Horizontal
 from textual.widgets import Footer, Header, Input, Static
 from textual.widget import Widget
@@ -26,7 +28,7 @@ class QueryPrompt(Widget):
             event: Input submitted event
         """
         event.stop()
-        self.app.action_accept_query()
+        cast(QueryApp, self.app).action_accept_query()
 
     def compose(self) -> ComposeResult:
         with Horizontal():
@@ -87,11 +89,11 @@ class StatusBar(Static):
 class QueryApp(App[None]):
     """Main Textual application for interactive Python querying."""
 
-    CSS_PATH = "styles.tcss"
-    TITLE = "pq - Interactive Python Query Tool"
-    SUB_TITLE = "Type Python expressions to query your data"
+    CSS_PATH: ClassVar[CSSPathType | None] = "styles.tcss"
+    TITLE: str | None = "pq - Interactive Python Query Tool"
+    SUB_TITLE: str | None = "Type Python expressions to query your data"
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list[BindingType]] = [
         ("ctrl+c", "quit", "Cancel & Quit"),
     ]
 
