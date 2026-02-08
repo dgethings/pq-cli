@@ -14,7 +14,7 @@ class PathExtractor:
         """
         self.data = data
         self.paths: list[str] = []
-        self._extract_paths(self.data, "data")
+        self._extract_paths(self.data, "_")
 
     def _extract_paths(self, obj: Any, current_path: str) -> None:
         """Recursively extract paths from object.
