@@ -33,6 +33,7 @@ class QueryInput(BaseInput):
                 "#suggestion-box", SuggestionBox
             )
             if suggestion_box.suggestions:
+                option_list.highlighted = 0
                 option_list.focus()
 
 
