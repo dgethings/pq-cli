@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v0.2.0 (2026-02-09)
+
+### Bug Fixes
+
+- First suggestion highlighted when tabbing into suggestion list
+  ([`1ed6a83`](https://github.com/dgethings/pq/commit/1ed6a83983f0c42a48eb7b260766fbee112397a3))
+
+- Suggestions use "_" base variable
+  ([`33f8977`](https://github.com/dgethings/pq/commit/33f8977c87c110327619c85752f0947dfe203ea6))
+
+### Features
+
+- Tab into an select suggestions
+  ([`c46d536`](https://github.com/dgethings/pq/commit/c46d5367be65fe633b51a4f795da8856070b200c))
+
+
 ## v0.1.1 (2026-02-07)
 
 ### Bug Fixes
@@ -18,4 +34,3 @@
 ## v0.1.0 (2026-02-07)
 
 - Initial Release
-
