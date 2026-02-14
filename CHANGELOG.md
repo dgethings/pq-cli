@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.6.0 (2026-02-14)
+
+### Features
+
+- Add config file support for color themes
+  ([`d285493`](https://github.com/dgethings/pq/commit/d285493ab4e3e23e95eb33b36a9e60cc866b074b))
+
+
 ## v0.5.0 (2026-02-14)
 
 ### Features
