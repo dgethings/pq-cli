@@ -30,7 +30,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Setup | Install Python & Project dependencies
-        run: uv sync --extra build
+        run: uv sync
 
       - name: Build | Build next version artifacts
         id: version
