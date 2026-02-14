@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v0.4.0 (2026-02-14)
+
+### Chores
+
+- Move AI generated tests to tests dir
+  ([`4e336ad`](https://github.com/dgethings/pq/commit/4e336ad2ab0efc4cfca1f031e2ad7b1286aea0ee))
+
+- Remove beads
+  ([`84bf6e6`](https://github.com/dgethings/pq/commit/84bf6e60e989aabfcdbae0843b954c1989a24e1d))
+
+### Features
+
+- Add section headers for suggestions and results
+  ([`f7b56f4`](https://github.com/dgethings/pq/commit/f7b56f45065af8d391a7639e9292e4ce34817f36))
+
+
 ## v0.3.0 (2026-02-14)
 
 ### Bug Fixes

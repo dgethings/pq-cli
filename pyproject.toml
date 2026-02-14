@@ -1,6 +1,6 @@
 [project]
 name = "pq"
-version = "0.3.0"
+version = "0.4.0"
 description = "Interactive Python query tool for structured documents"
 readme = "README.md"
 authors = [
