@@ -19,6 +19,22 @@ class DocumentLoadError(Exception):
     """Raised when document loading fails."""
 
 
+def load_document(file_path: Path) -> dict[str, Any]:
+    """Load document from file path.
+
+    Args:
+        file_path: Path to the file to load
+
+    Returns:
+        Parsed document as dictionary
+
+    Raises:
+        DocumentLoadError: If file loading fails
+    """
+    content, file_type = content_from_file(file_path)
+    return load_content(content, file_type, str(file_path))
+
+
 def content_from_file(file_path: Path) -> tuple[str, FileTypes]:
     """Load document from file path."""
     if not file_path.exists():

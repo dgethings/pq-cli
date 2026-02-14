@@ -1,5 +1,6 @@
 """Path completion and fuzzy matching module."""
 
+import re
 from typing import Any
 
 
@@ -54,6 +55,85 @@ class FuzzyMatcher:
         """
         self.paths = paths
 
+    def _get_path_depth(self, path: str) -> int:
+        """Calculate depth of bracket access in path.
+
+        Args:
+            path: Path string to analyze
+
+        Returns:
+            Number of bracket access levels
+        """
+        complete_brackets = re.findall(r"\[[^\]]+\]", path)
+        return len(complete_brackets)
+
+    def _matches_prefix(self, path: str, query: str) -> bool:
+        """Check if path matches query prefix.
+
+        Handles partial keys with fuzzy matching.
+
+        Args:
+            path: Full path string
+            query: Query prefix (may be partial)
+
+        Returns:
+            True if path matches query prefix
+        """
+        if not query or query == "_":
+            return path.startswith("_")
+
+        if path.startswith(query):
+            return True
+
+        path_lower = path.lower()
+
+        bracket_match = re.search(r"\['([^']*)$", query)
+        if bracket_match:
+            partial_key = bracket_match.group(1)
+            base_prefix = query[: bracket_match.start()]
+            if path_lower.startswith(base_prefix.lower()):
+                key_match = re.search(r"\['([^']+)'\]", path[len(base_prefix) :])
+                if key_match:
+                    actual_key = key_match.group(1)
+                    return partial_key.lower() in actual_key.lower()
+
+        return False
+
+    def _has_partial_key(self, query: str) -> bool:
+        """Check if query ends with a partial key.
+
+        Args:
+            query: Query string to check
+
+        Returns:
+            True if query ends with a partial key
+        """
+        return bool(re.search(r"\['([^']*)$", query))
+
+    def _filter_to_next_level(self, paths: list[str], query: str) -> list[str]:
+        """Filter paths to only show next-level suggestions.
+
+        Args:
+            paths: List of all available paths
+            query: Current query string
+
+        Returns:
+            List of paths at the next level only
+        """
+        query_depth = self._get_path_depth(query)
+        target_depth = query_depth + 1
+
+        matched = []
+        for path in paths:
+            if not self._matches_prefix(path, query):
+                continue
+
+            path_depth = self._get_path_depth(path)
+            if path_depth == target_depth:
+                matched.append(path)
+
+        return matched
+
     def find_matches(self, query: str, max_results: int = 10) -> list[str]:
         """Find paths that fuzzy match the query.
 
@@ -64,19 +144,10 @@ class FuzzyMatcher:
         Returns:
             List of matching paths sorted by relevance
         """
-        if not query:
-            return self.paths[:max_results]
+        if not query or query == "_":
+            return self._filter_to_next_level(self.paths, "_")
 
-        query_lower = query.lower()
-        matches = []
-
-        for path in self.paths:
-            score = self._calculate_score(path.lower(), query_lower)
-            if score > 0:
-                matches.append((path, score))
-
-        matches.sort(key=lambda x: x[1], reverse=True)
-        return [path for path, _ in matches[:max_results]]
+        return self._filter_to_next_level(self.paths, query)[:max_results]
 
     def _calculate_score(self, path: str, query: str) -> int:
         """Calculate fuzzy match score.
