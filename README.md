@@ -20,6 +20,7 @@
 - **Fuzzy path completion** - Get smart suggestions as you type
 - **Seamless piping** - Exit with Enter and pipe results to other commands
 - **Safe evaluation** - Only safe builtins available
+- **Color themes** - Choose from 18 built-in Textual themes
 
 ## Why does this exist?
 
@@ -73,6 +74,9 @@ pq "_" examples/products.toml
 
 # Query an XML file
 pq "_" examples/products.xml
+
+# Use a specific theme
+pq "_" examples/employees.json --theme dracula
 
 # Pipe from another command
 cat "_" examples/users.json | pq --format json
@@ -130,6 +134,55 @@ The following Python builtins are available in your queries:
 - **Functional**: `filter`, `map`, `any`, `all`
 - **Iteration**: `range`, `zip`, `enumerate`
 - **Other**: `type`, `isinstance`, `abs`, `round`, `slice`
+
+## Configuration
+
+You can configure `pq` using a config file or command-line argument.
+
+### Color Themes
+
+`pq` supports 18 built-in Textual color themes:
+
+```
+atom-one-dark, atom-one-light, catppuccin-latte, catppuccin-mocha,
+dracula, flexoki, gruvbox, monokai, nord, rose-pine,
+rose-pine-dawn, rose-pine-moon, solarized-dark, solarized-light,
+textual-ansi, textual-dark, textual-light, tokyo-night
+```
+
+### Config File
+
+Create a config file at either location (`.pq.toml` takes precedence):
+
+- `./.pq.toml` (current directory)
+- `$HOME/.config/pq/config.toml` (XDG config directory)
+
+Example `~/.config/pq/config.toml`:
+```toml
+[theme]
+name = "dracula"
+```
+
+### Command-Line Argument
+
+Override config file with `--theme` or `-t`:
+
+```bash
+# Use dracula theme
+pq "_" data.json --theme dracula
+
+# Use tokyo-night theme
+pq "_" data.yaml -t tokyo-night
+```
+
+### Priority Order
+
+Theme selection follows this priority (highest to lowest):
+
+1. CLI `--theme` argument
+2. Local `.pq.toml` config file
+3. `$HOME/.config/pq/config.toml` config file
+4. Textual default theme
 
 ## Examples
 

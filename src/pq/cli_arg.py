@@ -26,6 +26,14 @@ FileType = Annotated[
         help="When reading from stdin you need to specify the file format",
     ),
 ]
+Theme = Annotated[
+    str | None,
+    typer.Option(
+        "--theme",
+        "-t",
+        help="Textual color theme (overrides config file)",
+    ),
+]
 Version = Annotated[
     bool | None,
     typer.Option(

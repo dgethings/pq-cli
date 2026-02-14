@@ -6,9 +6,10 @@ import sys
 import typer
 from rich import print
 
+from pq.config import load_config
 from pq.evaluator import evaluate_query
 from pq.loader import content_from_file, load_content
-from pq.cli_arg import Query, FilePath, FileType, Version
+from pq.cli_arg import Query, FilePath, FileType, Theme, Version
 from pq.tui import QueryApp
 
 app = typer.Typer()
@@ -19,12 +20,13 @@ def main(
     query: Query,
     file_path: FilePath = None,
     file_type: FileType = None,
+    theme: Theme = None,
     v: Version = None,
 ) -> None:
     """Run a query against a document.
 
     Query a document using Python syntax.
-    Reads from a file or stdin and evaluates the query against the document data.
+    Reads from a file or stdin and evaluates the query against document data.
     """
     data = None
     if file_path is None and file_type is None and not Path(query).exists():
@@ -35,7 +37,11 @@ def main(
     if Path(query).exists():
         content, file_type = content_from_file(file_path=Path(query))
         data = load_content(content=content, file_type=file_type, src=query)
-        tui = QueryApp(data=data)
+
+        config = load_config()
+        selected_theme = theme or config.theme
+
+        tui = QueryApp(data=data, theme=selected_theme)
         tui.run()
         result = str(tui.query_string)
         print(result)

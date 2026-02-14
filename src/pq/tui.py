@@ -159,11 +159,12 @@ class QueryApp(App[None]):
         ("ctrl+c", "quit", "Cancel & Quit"),
     ]
 
-    def __init__(self, data: dict[str, Any]) -> None:
+    def __init__(self, data: dict[str, Any], theme: str | None = None) -> None:
         """Initialize app with document data.
 
         Args:
             data: Document data to query
+            theme: Textual theme name (optional)
         """
         self.data = data
         self.final_result: Any = None
@@ -174,6 +175,14 @@ class QueryApp(App[None]):
         self.query_string: str = "_"
 
         super().__init__()
+
+        if theme is not None:
+            if theme not in self.available_themes:
+                available = ", ".join(sorted(self.available_themes))
+                raise ValueError(
+                    f"Invalid theme '{theme}'. Available themes: {available}"
+                )
+            self.theme = theme
 
     def compose(self) -> ComposeResult:
         """Compose the UI."""
