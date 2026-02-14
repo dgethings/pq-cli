@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.5.0 (2026-02-14)
+
+### Features
+
+- Filter suggestions to next level only
+  ([`98e7493`](https://github.com/dgethings/pq/commit/98e7493df88edbc9b9b226a33cb68945c7f91f32))
+
+
 ## v0.4.0 (2026-02-14)
 
 ### Chores
