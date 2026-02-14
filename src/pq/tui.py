@@ -2,6 +2,7 @@
 
 from typing import Any, ClassVar, cast
 
+from rich.syntax import Syntax
 from textual._path import CSSPathType
 from textual.app import App, ComposeResult
 from textual.binding import BindingType
@@ -13,6 +14,7 @@ from textual.widget import Widget
 from pq.completion import FuzzyMatcher, PathExtractor
 from pq.evaluator import QueryEvaluationError, evaluate_query
 from pq.output import OutputFormatter
+from pq.theme_mapping import map_theme_to_pygments
 
 
 class QueryInput(BaseInput):
@@ -80,7 +82,9 @@ class ResultDisplay(Static):
             self.update(f"[error]{result}[/error]")
         else:
             formatted = OutputFormatter.format_output(result)
-            self.update(formatted)
+            pygments_theme = map_theme_to_pygments(cast(QueryApp, self.app).theme)
+            syntax = Syntax(formatted, "json", theme=pygments_theme, line_numbers=False)
+            self.update(syntax)
 
 
 class SuggestionBox(Widget):
@@ -99,8 +103,14 @@ class SuggestionBox(Widget):
         self.suggestions = suggestions[:10]
         option_list = self.query_one("#suggestion-list", OptionList)
         option_list.clear_options()
+
+        pygments_theme = map_theme_to_pygments(cast(QueryApp, self.app).theme)
+
         for suggestion in self.suggestions:
-            option_list.add_option(Option(suggestion))
+            syntax = Syntax(
+                suggestion, "python", theme=pygments_theme, line_numbers=False
+            )
+            option_list.add_option(Option(syntax))
 
         header = self.query_one("#suggestion-header", SectionHeader)
         if not suggestions:
