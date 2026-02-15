@@ -162,7 +162,7 @@ class QueryApp(App[None]):
     """Main Textual application for interactive Python querying."""
 
     CSS_PATH: ClassVar[CSSPathType | None] = "styles.tcss"
-    TITLE: str | None = "pq - Interactive Python Query Tool"
+    TITLE: str | None = "pq-cli - Interactive Python Query Tool"
     SUB_TITLE: str | None = "Type Python expressions to query your data"
 
     BINDINGS: ClassVar[list[BindingType]] = [

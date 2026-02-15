@@ -1,5 +1,5 @@
 # pq-cli configuration file
-# Copy this file to ~/.config/pq/config.toml or ./.pq.toml
+# Copy this file to ~/.config/pq-cli/config.toml or ./.pq-cli.toml
 
 [theme]
 # Choose from the following themes:

@@ -15,15 +15,15 @@ def load_config() -> Config:
     """Load configuration from file.
 
     Searches for config file in the following order:
-    1. ./.pq.toml (current directory)
-    2. $HOME/.config/pq/config.toml (XDG config dir)
+    1. ./.pq-cli.toml (current directory)
+    2. $HOME/.config/pq-cli/config.toml (XDG config dir)
 
     Returns:
         Config object with loaded settings, or None for missing values
     """
     config_paths = [
-        Path(".pq.toml"),
-        Path.home() / ".config" / "pq" / "config.toml",
+        Path(".pq-cli.toml"),
+        Path.home() / ".config" / "pq-cli" / "config.toml",
     ]
 
     for config_path in config_paths:

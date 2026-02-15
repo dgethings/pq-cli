@@ -95,6 +95,7 @@ cat examples/users.json | pq-cli -j
 
 # Query and pipe to another tool
 pq-cli "_" examples/employees.json | jq '.'
+```
 
 ### File Type Flags for stdin
 
@@ -182,11 +183,11 @@ The following Python builtins and collections module functions are available in 
 
 ## Configuration
 
-You can configure `pq` using a config file or command-line argument.
+You can configure `pq-cli` using a config file or command-line argument.
 
 ### Color Themes
 
-`pq` supports 18 built-in Textual color themes:
+`pq-cli` supports 18 built-in Textual color themes:
 
 ```
 atom-one-dark, atom-one-light, catppuccin-latte, catppuccin-mocha,
@@ -197,12 +198,12 @@ textual-ansi, textual-dark, textual-light, tokyo-night
 
 ### Config File
 
-Create a config file at either location (`.pq.toml` takes precedence):
+Create a config file at either location (`.pq-cli.toml` takes precedence):
 
-- `./.pq.toml` (current directory)
-- `$HOME/.config/pq/config.toml` (XDG config directory)
+- `./.pq-cli.toml` (current directory)
+- `$HOME/.config/pq-cli/config.toml` (XDG config directory)
 
-Example `~/.config/pq/config.toml`:
+Example `~/.config/pq-cli/config.toml`:
 ```toml
 [theme]
 name = "dracula"
@@ -225,8 +226,8 @@ pq-cli "_" data.yaml -T tokyo-night
 Theme selection follows this priority (highest to lowest):
 
 1. CLI `--theme` argument
-2. Local `.pq.toml` config file
-3. `$HOME/.config/pq/config.toml` config file
+2. Local `.pq-cli.toml` config file
+3. `$HOME/.config/pq-cli/config.toml` config file
 4. Textual default theme
 
 ## Examples
@@ -315,7 +316,7 @@ Query: Find users with admin role
 ## UI Elements
 
 ### Input Field
-Type your Python expression at the `>` prompt. The result updates in real-time as you type.
+Type your Python expression at the prompt. The result updates in real-time as you type.
 
 ### Result Display
 Shows the evaluated result of your query. Errors are displayed in red with helpful messages.
@@ -368,8 +369,8 @@ Provides helpful hints about available actions and current state.
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/pq.git
-cd pq
+git clone https://github.com/yourusername/pq-cli.git
+cd pq-cli
 
 # Install with uv (recommended)
 uv sync
