@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.10.1 (2026-02-15)
+
+### Bug Fixes
+
+- Update config file paths and branding from pq to pq-cli
+  ([`91bd79d`](https://github.com/dgethings/pq-cli/commit/91bd79d28e528c368ab6844ddc2a65e308c40f80))
+
+
 ## v0.10.0 (2026-02-15)
 
 ### Features

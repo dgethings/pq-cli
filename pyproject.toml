@@ -1,6 +1,6 @@
 [project]
 name = "pq-cli"
-version = "0.10.0"
+version = "0.10.1"
 description = "Interactive Python query CLI tool for structured documents"
 readme = "README.md"
 authors = [
