@@ -91,10 +91,30 @@ pq-cli "_" examples/products.xml
 pq-cli "_" examples/employees.json --theme dracula
 
 # Pipe from another command
-cat "_" examples/users.json | pq-cli --format json
+cat examples/users.json | pq-cli -j
 
 # Query and pipe to another tool
 pq-cli "_" examples/employees.json | jq '.'
+
+### File Type Flags for stdin
+
+When piping data to `pq-cli` from stdin, you must specify the file format:
+
+```bash
+# Read JSON from stdin
+cat data.json | pq-cli -j
+
+# Read YAML from stdin
+cat data.yaml | pq-cli --yaml
+
+# Read XML from stdin
+curl -s https://example.com/data.xml | pq-cli -x
+
+# Read TOML from stdin
+cat config.toml | pq-cli --toml
+```
+
+Only one file type flag may be specified at a time.
 ```
 
 ## Usage
@@ -177,14 +197,14 @@ name = "dracula"
 
 ### Command-Line Argument
 
-Override config file with `--theme` or `-t`:
+Override config file with `--theme` or `-T`:
 
 ```bash
 # Use dracula theme
 pq-cli "_" data.json --theme dracula
 
 # Use tokyo-night theme
-pq-cli "_" data.yaml -t tokyo-night
+pq-cli "_" data.yaml -T tokyo-night
 ```
 
 ### Priority Order

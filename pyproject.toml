@@ -29,6 +29,8 @@ module-name = "pq"
 dev = [
     "python-semantic-release>=10.5.3",
     "textual-dev>=1.8.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
 ]
 
 [semantic_release]
