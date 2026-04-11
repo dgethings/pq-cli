@@ -33,21 +33,44 @@ dev = [
     "pytest-cov>=4.0.0",
 ]
 
-[semantic_release]
+[tool.semantic_release]
 major_on_zero = false
 allow_zero_version = true
 repo_dir = "."
 version_toml = ["pyproject.toml:project.version"]
 branch = "main"
-build_command = "uv build"
+build_command = """
+  uv lock --upgrade-package "pq-cli"
+  git add uv.lock
+  uv build
+"""
 distribution_dir = "dist"
-changelog_file = "CHANGELOG.md"
+commit_parser = "conventional"
 commit_message = "chore(release): {version}"
 tag_format = "v{version}"
 hvcs = "github"
 
-[semantic_release.remote]
-ignore_token_for_push = true
+[tool.semantic_release.commit_parser_options]
+minor_tags = ["feat"]
+patch_tags = ["fix", "perf"]
+parse_squash_commits = true
+ignore_merge_commits = true
 
-[semantic_release.changelog.default_templates]
+[tool.semantic_release.changelog]
+exclude_commit_patterns = [
+    '''chore(?:\([^)]*?\))?: .+''',
+    '''ci(?:\([^)]*?\))?: .+''',
+    '''refactor(?:\([^)]*?\))?: .+''',
+    '''style(?:\([^)]*?\))?: .+''',
+    '''test(?:\([^)]*?\))?: .+''',
+    '''build\((?!deps\): .+)''',
+    '''Initial [Cc]ommit.*''',
+]
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md"
+output_format = "md"
 mask_initial_release = false
+
+[tool.semantic_release.remote]
+ignore_token_for_push = true
