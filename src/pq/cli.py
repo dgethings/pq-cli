@@ -1,10 +1,11 @@
 """CLI argument parsing module."""
 
+from __future__ import annotations
+
 from pathlib import Path
 import sys
 
 import typer
-from rich import print
 
 from pq.config import load_config
 from pq.evaluator import evaluate_query
@@ -20,7 +21,10 @@ from pq.cli_arg import (
     Version,
     consolidate_file_type_flags,
 )
+from pq.output import OutputFormatter
 from pq.tui import QueryApp
+
+__all__ = ["app"]
 
 app = typer.Typer()
 
@@ -41,46 +45,43 @@ def main(
     Query a document using Python syntax.
     Reads from a file or stdin and evaluates the query against document data.
     """
-    data = None
-    content = None
+    if query is None:
+        raise typer.BadParameter("A query expression is required")
+
     file_type = consolidate_file_type_flags(
         file_type_json, file_type_yaml, file_type_xml, file_type_toml
     )
-    if file_path is None and not file_type and query and not Path(query).exists():
-        raise typer.BadParameter(
-            "Must supply file path, or use a file type flag (-j/-y/-x/-t) when reading from stdin"
-        )
-    if query is None:
-        raise typer.BadParameter("A query expression is required")
-    src = "stdin"
-    if Path(query).exists():
-        content, file_type = content_from_file(file_path=Path(query))
-        data = load_content(content=content, file_type=file_type, src=query)
+
+    query_path = Path(query)
+    is_tui_mode = query_path.exists() and file_path is None
+
+    if is_tui_mode:
+        content, resolved_type = content_from_file(file_path=query_path)
+        data = load_content(content=content, file_type=resolved_type, src=query)
 
         config = load_config()
         selected_theme = theme or config.theme
 
         tui = QueryApp(data=data, theme=selected_theme)
         tui.run()
-        result = str(tui.query_string)
-        print(result)
+        OutputFormatter.print_to_stdout(str(tui.query_string))
         raise typer.Exit(0)
 
-    if query and file_path:
-        content, file_type = content_from_file(file_path=file_path)
+    if file_path is not None:
+        content, resolved_type = content_from_file(file_path=file_path)
         src = str(file_path)
-    elif file_type and file_path is None:
+    elif file_type is not None:
         content = sys.stdin.read()
-    if not file_type and not (file_path and query):
+        resolved_type = file_type
+        src = "stdin"
+    else:
         raise typer.BadParameter(
-            "When reading from stdin, you must specify file type with -j/--json, -y/--yaml, -x/--xml, or -t/--toml"
+            "Must supply file path, or use a file type flag (-j/-y/-x/-t) when reading from stdin"
         )
 
-    assert file_type is not None, "file_type must be set"
-    assert content is not None, "content must be set"
-    data = load_content(content=content, file_type=file_type, src=src)
+    data = load_content(content=content, file_type=resolved_type, src=src)
     result = evaluate_query(query, data)
-    print(result)
+    OutputFormatter.print_to_stdout(result)
 
 
 if __name__ == "__main__":

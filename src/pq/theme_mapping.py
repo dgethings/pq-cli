@@ -1,6 +1,10 @@
 """Theme mapping module for syntax highlighting."""
 
+from __future__ import annotations
+
 from typing import Final
+
+__all__ = ["THEME_MAPPING", "map_theme_to_pygments"]
 
 
 THEME_MAPPING: Final[dict[str, str]] = {

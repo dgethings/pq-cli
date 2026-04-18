@@ -1,21 +1,53 @@
 """Main Textual application module."""
 
+import asyncio
 import re
 from typing import Any, ClassVar, cast
 
 from rich.syntax import Syntax
-from textual._path import CSSPathType
 from textual.app import App, ComposeResult
 from textual.binding import BindingType
-from textual.widgets import Footer, Header, OptionList, Static
-from textual.widgets.option_list import Option
-from textual.widgets._input import Input as BaseInput, Selection
+from textual.types import CSSPathType
 from textual.widget import Widget
+from textual.widgets import Footer, Header, OptionList, Static
+from textual.widgets._input import Input as BaseInput, Selection
+from textual.widgets.option_list import Option
 
 from pq.completion import FuzzyMatcher, PathExtractor
 from pq.evaluator import QueryEvaluationError, evaluate_query
 from pq.output import OutputFormatter
 from pq.theme_mapping import map_theme_to_pygments
+
+_BRACKET_PATH_RE = r"(_(?:\[(?:\d+|'[^']*'|\"[^\"]*\")\])*)"
+
+_DEBOUNCE_DELAY = 0.15
+
+
+def _parse_bracket_context(before_cursor: str) -> tuple[str, str, str] | None:
+    """Parse bracket context from text before cursor.
+
+    Returns (base_path, partial_key, quote_char) or None if not in a bracket.
+    """
+    for pattern, quote in [
+        (_BRACKET_PATH_RE + r"\[('?)$", "'"),
+        (_BRACKET_PATH_RE + r'\[("?)$', '"'),
+    ]:
+        match = re.search(pattern, before_cursor)
+        if match:
+            base_path = match.group(1) or "_"
+            return base_path, "", quote
+
+    for pattern, quote in [
+        (_BRACKET_PATH_RE + r"\['([^']*)$", "'"),
+        (_BRACKET_PATH_RE + r'\["([^"]*)$', '"'),
+    ]:
+        match = re.search(pattern, before_cursor)
+        if match:
+            base_path = match.group(1) or "_"
+            partial = match.group(2) or ""
+            return base_path, partial, quote
+
+    return None
 
 
 class QueryInput(BaseInput):
@@ -35,44 +67,14 @@ class QueryInput(BaseInput):
         """Handle tab completion for keys in bracket expressions."""
         value = self.value
         cursor_pos = self.cursor_position
-
         before_cursor = value[:cursor_pos]
 
-        single_match = re.search(
-            r"(_(?:\[(?:\d+|'[^']*'|\"[^\"]*\")\])*)\[('?)$", before_cursor
-        )
-        if single_match:
-            base_path = single_match.group(1) or "_"
-            quote = single_match.group(2) or "'"
-            self._complete_key(base_path, "", quote)
+        ctx = _parse_bracket_context(before_cursor)
+        if ctx is None:
             return
 
-        double_match = re.search(
-            r"(_(?:\[(?:\d+|'[^']*'|\"[^\"]*\")\])*)\[(\"?)$", before_cursor
-        )
-        if double_match:
-            base_path = double_match.group(1) or "_"
-            quote = double_match.group(2) or '"'
-            self._complete_key(base_path, "", quote)
-            return
-
-        single_quote_match = re.search(
-            r"(_(?:\[(?:\d+|'[^']*'|\"[^\"]*\")\])*)\['([^']*)$", before_cursor
-        )
-        if single_quote_match:
-            base_path = single_quote_match.group(1) or "_"
-            partial = single_quote_match.group(2)
-            self._complete_key(base_path, partial, "'")
-            return
-
-        double_quote_match = re.search(
-            r'(_(?:\[(?:\d+|\'[^"]*\'|"[^"]*")\])*)\["([^"]*)$', before_cursor
-        )
-        if double_quote_match:
-            base_path = double_quote_match.group(1) or "_"
-            partial = double_quote_match.group(2)
-            self._complete_key(base_path, partial, '"')
-            return
+        base_path, partial, quote = ctx
+        self._complete_key(base_path, partial, quote)
 
     def _complete_key(self, base_path: str, partial: str, quote: str) -> None:
         """Complete the key at the current position.
@@ -98,15 +100,10 @@ class QueryInput(BaseInput):
         before_cursor = value[:cursor_pos]
 
         if partial:
-            if quote == "'":
-                pattern = r"(_(?:\[(?:\d+|'[^']*'|\"[^\"]*\")\])*)\['([^']*)$"
-                match = re.search(pattern, before_cursor)
-            else:
-                pattern = r'(_(?:\[(?:\d+|\'[^"]*\'|"[^"]*")\])*)\["([^"]*)$'
-                match = re.search(pattern, before_cursor)
-
-            if match:
-                new_before = match.group(1) + "[" + quote + completed_key + quote + "]"
+            ctx = _parse_bracket_context(before_cursor)
+            if ctx is not None:
+                actual_base = ctx[0]
+                new_before = actual_base + "[" + quote + completed_key + quote + "]"
                 after_cursor = value[cursor_pos:]
                 self.value = new_before + after_cursor
                 self.cursor_position = len(new_before)
@@ -248,7 +245,10 @@ class QueryApp(App[None]):
         ("ctrl+c", "quit", "Cancel & Quit"),
     ]
 
-    def __init__(self, data: dict[str, Any], theme: str | None = None) -> None:
+    _pending_query: str | None = None
+    _eval_timer: Any = None
+
+    def __init__(self, data: Any, theme: str | None = None) -> None:
         """Initialize app with document data.
 
         Args:
@@ -291,25 +291,15 @@ class QueryApp(App[None]):
             "Type a Python expression to query the data. Press Enter to exit."
         )
 
-    def on_input_changed(self, event: QueryInput.Changed) -> None:
-        """Handle input changes for real-time evaluation.
-
-        Args:
-            event: Input changed event
-        """
-        query = event.value
-        result_display = self.query_one("#result-display", ResultDisplay)
+    def _update_suggestions(self, query: str) -> None:
+        """Update suggestion box immediately (no debounce)."""
         suggestion_box = self.query_one("#suggestion-box", SuggestionBox)
-
-        if not query.strip():
-            result_display.update_result("")
-            suggestion_box.update_suggestions([])
-            self.final_result = None
-            return
-
         suggestions = self.fuzzy_matcher.find_matches(query)
         suggestion_box.update_suggestions(suggestions)
 
+    def _evaluate_and_display(self, query: str) -> None:
+        """Evaluate query and update result display."""
+        result_display = self.query_one("#result-display", ResultDisplay)
         try:
             result = evaluate_query(query, self.data)
             result_display.update_result(result, is_error=False)
@@ -318,6 +308,49 @@ class QueryApp(App[None]):
         except QueryEvaluationError as e:
             result_display.update_result(str(e), is_error=True)
             self.final_result = None
+
+    def on_input_changed(self, event: QueryInput.Changed) -> None:
+        """Handle input changes for real-time evaluation with debouncing.
+
+        Args:
+            event: Input changed event
+        """
+        query = event.value
+        result_display = self.query_one("#result-display", ResultDisplay)
+
+        if not query.strip():
+            result_display.update_result("")
+            self.query_one("#suggestion-box", SuggestionBox).update_suggestions([])
+            self.final_result = None
+            self._cancel_eval_timer()
+            return
+
+        self._update_suggestions(query)
+        self._schedule_eval(query)
+
+    def _cancel_eval_timer(self) -> None:
+        """Cancel any pending evaluation timer."""
+        if self._eval_timer is not None:
+            self._eval_timer.stop()
+            self._eval_timer = None
+
+    def _schedule_eval(self, query: str) -> None:
+        """Schedule a debounced evaluation, cancelling any pending one.
+
+        Args:
+            query: Query string to evaluate
+        """
+        self._cancel_eval_timer()
+        self._pending_query = query
+
+        async def _debounced_eval() -> None:
+            await asyncio.sleep(_DEBOUNCE_DELAY)
+            self._eval_timer = None
+            if self._pending_query is not None:
+                self._evaluate_and_display(self._pending_query)
+                self._pending_query = None
+
+        self._eval_timer = self.set_timer(_DEBOUNCE_DELAY, _debounced_eval)
 
     def action_accept_query(self) -> None:
         """Accept the current query and exit."""

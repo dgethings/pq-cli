@@ -1,7 +1,16 @@
 """Query evaluation module."""
 
+from __future__ import annotations
+
+import ast
 from collections import Counter, defaultdict, OrderedDict, deque, namedtuple
 from typing import Any
+
+__all__ = [
+    "ALLOWED_BUILTINS",
+    "QueryEvaluationError",
+    "evaluate_query",
+]
 
 
 ALLOWED_BUILTINS = {
@@ -37,9 +46,161 @@ ALLOWED_BUILTINS = {
     "namedtuple": namedtuple,
 }
 
+_SAFE_NODE_TYPES = frozenset(
+    {
+        ast.Expression,
+        ast.BinOp,
+        ast.UnaryOp,
+        ast.BoolOp,
+        ast.Compare,
+        ast.Call,
+        ast.IfExp,
+        ast.Attribute,
+        ast.Subscript,
+        ast.Starred,
+        ast.Name,
+        ast.Constant,
+        ast.List,
+        ast.Tuple,
+        ast.Set,
+        ast.Dict,
+        ast.ListComp,
+        ast.SetComp,
+        ast.DictComp,
+        ast.GeneratorExp,
+        ast.comprehension,
+        ast.Slice,
+        ast.Index,
+        ast.Load,
+        ast.Store,
+        ast.Del,
+        ast.keyword,
+        ast.Lambda,
+        ast.arguments,
+        ast.arg,
+        ast.Add,
+        ast.Sub,
+        ast.Mult,
+        ast.Div,
+        ast.FloorDiv,
+        ast.Mod,
+        ast.Pow,
+        ast.LShift,
+        ast.RShift,
+        ast.BitOr,
+        ast.BitXor,
+        ast.BitAnd,
+        ast.MatMult,
+        ast.UAdd,
+        ast.USub,
+        ast.Not,
+        ast.Invert,
+        ast.And,
+        ast.Or,
+        ast.Eq,
+        ast.NotEq,
+        ast.Lt,
+        ast.LtE,
+        ast.Gt,
+        ast.GtE,
+        ast.Is,
+        ast.IsNot,
+        ast.In,
+        ast.NotIn,
+    }
+)
+
+_ALLOWED_BIN_OPS = frozenset(
+    {
+        ast.Add,
+        ast.Sub,
+        ast.Mult,
+        ast.Div,
+        ast.FloorDiv,
+        ast.Mod,
+        ast.Pow,
+        ast.LShift,
+        ast.RShift,
+        ast.BitOr,
+        ast.BitXor,
+        ast.BitAnd,
+        ast.MatMult,
+    }
+)
+
+_ALLOWED_UNARY_OPS = frozenset({ast.UAdd, ast.USub, ast.Not, ast.Invert})
+
+_ALLOWED_CMP_OPS = frozenset(
+    {
+        ast.Eq,
+        ast.NotEq,
+        ast.Lt,
+        ast.LtE,
+        ast.Gt,
+        ast.GtE,
+        ast.Is,
+        ast.IsNot,
+        ast.In,
+        ast.NotIn,
+    }
+)
+
 
 class QueryEvaluationError(Exception):
     """Raised when query evaluation fails."""
+
+
+def _validate_ast(node: ast.AST) -> None:
+    """Walk the AST and reject dangerous node types.
+
+    Args:
+        node: AST node to validate
+
+    Raises:
+        QueryEvaluationError: If the expression contains unsafe constructs
+    """
+    for child in ast.walk(node):
+        child_type = type(child)
+
+        if child_type not in _SAFE_NODE_TYPES:
+            raise QueryEvaluationError(
+                f"Operation '{child_type.__name__}' is not allowed for safety reasons."
+            )
+
+        if isinstance(child, ast.BinOp):
+            if type(child.op) not in _ALLOWED_BIN_OPS:
+                raise QueryEvaluationError(
+                    f"Operator '{type(child.op).__name__}' is not allowed."
+                )
+
+        if isinstance(child, ast.UnaryOp):
+            if type(child.op) not in _ALLOWED_UNARY_OPS:
+                raise QueryEvaluationError(
+                    f"Operator '{type(child.op).__name__}' is not allowed."
+                )
+
+        if isinstance(child, ast.BoolOp):
+            if child.op not in (ast.And, ast.Or):
+                raise QueryEvaluationError(
+                    f"Boolean operator '{type(child.op).__name__}' is not allowed."
+                )
+
+        if isinstance(child, ast.Compare):
+            for op in child.ops:
+                if type(op) not in _ALLOWED_CMP_OPS:
+                    raise QueryEvaluationError(
+                        f"Comparison operator '{type(op).__name__}' is not allowed."
+                    )
+
+        if isinstance(child, ast.Name) and child.id.startswith("__"):
+            raise QueryEvaluationError(
+                "Double-underscore (dunder) access is not allowed for safety reasons."
+            )
+
+        if isinstance(child, ast.Attribute) and child.attr.startswith("__"):
+            raise QueryEvaluationError(
+                "Double-underscore (dunder) attribute access is not allowed for safety reasons."
+            )
 
 
 def evaluate_query(expression: str, data: Any) -> Any:
@@ -47,7 +208,7 @@ def evaluate_query(expression: str, data: Any) -> Any:
 
     Args:
         expression: Python expression to evaluate
-        data: Document data available as 'data' variable
+        data: Document data available as '_' variable
 
     Returns:
         Result of the expression evaluation
@@ -60,13 +221,22 @@ def evaluate_query(expression: str, data: Any) -> Any:
             "Please enter a query. Try: _, _['key'], or _['items'][0]"
         )
 
+    try:
+        tree = ast.parse(expression, mode="eval")
+    except SyntaxError as e:
+        raise QueryEvaluationError(
+            f"Invalid Python syntax: {e.msg} at position {e.offset}. Check for missing quotes, brackets, or operators."
+        )
+
+    _validate_ast(tree)
+
     restricted_globals = {
         "__builtins__": ALLOWED_BUILTINS,
         "_": data,
     }
 
     try:
-        return eval(expression, restricted_globals, {})
+        return eval(expression, restricted_globals, {"__builtins__": {}})
     except SyntaxError as e:
         raise QueryEvaluationError(
             f"Invalid Python syntax: {e.msg} at position {e.offset}. Check for missing quotes, brackets, or operators."
@@ -96,7 +266,7 @@ def evaluate_query(expression: str, data: Any) -> Any:
         )
     except AttributeError as e:
         raise QueryEvaluationError(
-            f"Invalid attribute access: {e}. Use dictionary-style access with brackets: data['key']"
+            f"Invalid attribute access: {e}. Use bracket-style access: _['key']"
         )
     except ValueError as e:
         raise QueryEvaluationError(f"Invalid value: {e}")

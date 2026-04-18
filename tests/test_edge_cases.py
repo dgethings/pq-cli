@@ -1,109 +1,67 @@
-"""Test script to verify edge case handling."""
+"""Test edge case handling."""
 
-import tempfile
+import json
 from pathlib import Path
-from pq.loader import DocumentLoadError, load_document
+
+import pytest
+
 from pq.evaluator import evaluate_query
+from pq.loader import DocumentLoadError, load_document
 
 
-def test_edge_cases():
-    """Test edge cases like empty files, malformed JSON, etc."""
-    print("Testing edge cases...")
-    print()
+class TestEmptyDocuments:
+    def test_empty_json_object(self, tmp_path):
+        file = tmp_path / "empty.json"
+        file.write_text("{}")
+        data = load_document(file_path=file)
+        assert data == {}
 
-    # Test with empty JSON object
-    print("Test 1: Empty JSON object")
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        f.write("{}")
-        empty_file = Path(f.name)
-    try:
-        data = load_document(file_path=empty_file)
-        print(f"Success: Loaded empty JSON object: {data}")
-        empty_file.unlink()
-    except DocumentLoadError as e:
-        print(f"Failed: {e}")
-        empty_file.unlink()
-    print()
-
-    # Test with JSON array (non-dict is allowed)
-    print("Test 2: JSON array (non-dict is allowed)")
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        f.write("[1, 2, 3]")
-        array_file = Path(f.name)
-    try:
-        data = load_document(file_path=array_file)
-        result = evaluate_query("_[0]", data)
-        print(f"Success: Loaded JSON array, first element: {result}")
-        array_file.unlink()
-    except Exception as e:
-        print(f"Failed: {e}")
-        array_file.unlink()
-    print()
-
-    # Test with malformed JSON
-    print("Test 3: Malformed JSON")
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        f.write('{"invalid": json}')
-        malformed_file = Path(f.name)
-    try:
-        data = load_document(file_path=malformed_file)
-        print(f"Failed: Should have raised DocumentLoadError, got: {data}")
-        malformed_file.unlink()
-    except DocumentLoadError as e:
-        print(f"Success: Got expected error: {e}")
-        malformed_file.unlink()
-    print()
-
-    # Test with nested structures
-    print("Test 4: Deeply nested structure")
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        f.write('{"a": {"b": {"c": {"d": {"e": "value"}}}}}')
-        nested_file = Path(f.name)
-    try:
-        data = load_document(file_path=nested_file)
-        result = evaluate_query("data['a']['b']['c']['d']['e']", data)
-        print(f"Success: Deeply nested access: {result}")
-        nested_file.unlink()
-    except Exception as e:
-        print(f"Failed: {e}")
-        nested_file.unlink()
-    print()
-
-    # Test with special characters in JSON
-    print("Test 5: Special characters in JSON")
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        f.write('{"key": "value with \\"quotes\\" and \\n newlines"}')
-        special_file = Path(f.name)
-    try:
-        data = load_document(file_path=special_file)
-        result = evaluate_query("data['key']", data)
-        print(f"Success: Special characters: {result}")
-        special_file.unlink()
-    except Exception as e:
-        print(f"Failed: {e}")
-        special_file.unlink()
-    print()
-
-    # Test with very long list (performance test)
-    print("Test 6: Large list (performance)")
-    import json
-
-    large_data = {"items": [{"id": i, "value": "test"} for i in range(1000)]}
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        f.write(json.dumps(large_data))
-        large_file = Path(f.name)
-    try:
-        data = load_document(file_path=large_file)
-        result = evaluate_query("len(data['items'])", data)
-        print(f"Success: Large list length: {result}")
-        large_file.unlink()
-    except Exception as e:
-        print(f"Failed: {e}")
-        large_file.unlink()
-    print()
-
-    print("All edge case tests passed!")
+    def test_empty_json_array(self, tmp_path):
+        file = tmp_path / "array.json"
+        file.write_text("[]")
+        data = load_document(file_path=file)
+        assert data == []
+        result = evaluate_query("len(_)", data)
+        assert result == 0
 
 
-if __name__ == "__main__":
-    test_edge_cases()
+class TestMalformedDocuments:
+    def test_malformed_json(self, tmp_path):
+        file = tmp_path / "bad.json"
+        file.write_text('{"invalid": json}')
+        with pytest.raises(DocumentLoadError):
+            load_document(file_path=file)
+
+
+class TestNonExistentFile:
+    def test_file_not_found(self):
+        with pytest.raises(DocumentLoadError, match="File not found"):
+            load_document(file_path=Path("/nonexistent/file.json"))
+
+
+class TestSpecialCharacters:
+    def test_json_with_special_characters(self, tmp_path):
+        file = tmp_path / "special.json"
+        file.write_text('{"key": "value with \\"quotes\\" and \\n newlines"}')
+        data = load_document(file_path=file)
+        assert "quotes" in data["key"]
+        assert "\n" in data["key"]
+
+
+class TestDeeplyNestedStructures:
+    def test_deeply_nested_access(self, tmp_path):
+        file = tmp_path / "nested.json"
+        file.write_text('{"a": {"b": {"c": {"d": {"e": "value"}}}}}')
+        data = load_document(file_path=file)
+        result = evaluate_query("_['a']['b']['c']['d']['e']", data)
+        assert result == "value"
+
+
+class TestLargeDocuments:
+    def test_large_list(self, tmp_path):
+        large_data = {"items": [{"id": i, "value": "test"} for i in range(1000)]}
+        file = tmp_path / "large.json"
+        file.write_text(json.dumps(large_data))
+        data = load_document(file_path=file)
+        result = evaluate_query("len(_['items'])", data)
+        assert result == 1000

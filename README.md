@@ -253,7 +253,7 @@ Query: Get all completed project names
 
 Query: Calculate average salary
 ```python
-sum(emp['salary'] for emp in _['employees']) / len(data['employees'])
+sum(_['employees'][emp]['salary'] for emp in _['employees']) / len(_['employees'])
 # Result: 105000.0
 ```
 
@@ -346,18 +346,18 @@ Provides helpful hints about available actions and current state.
 - For arrays, wrap them: `{"data": [...]}`
 
 ### "Key not found" Error
-- Check the document structure with `data` query
+- Check the document structure with `_` query
 - Verify exact spelling of keys (case-sensitive)
 - Use list/dict methods to explore available keys
 
 ### "Type error" Error
-- Ensure you're accessing dictionaries with `data['key']` syntax
-- Check that list indices are integers: `data['items'][0]`
+- Ensure you're accessing dictionaries with `_['key']` syntax
+- Check that list indices are integers: `_['items'][0]`
 - Verify operations are compatible with your data types
 
 ### Performance Issues
 - Large files (>100MB) may be slow
-- Use filters to reduce dataset size early: `[x for x in data if x['field'] == value]`
+- Use filters to reduce dataset size early: `[x for x in _ if x['field'] == value]`
 - Avoid complex nested operations on large lists
 
 ## Limitations

@@ -1,7 +1,11 @@
 """Path completion and fuzzy matching module."""
 
+from __future__ import annotations
+
 import re
 from typing import Any
+
+__all__ = ["PathExtractor", "FuzzyMatcher"]
 
 
 class PathExtractor:

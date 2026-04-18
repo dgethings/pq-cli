@@ -1,8 +1,12 @@
 """Configuration file handling module."""
 
+from __future__ import annotations
+
 from pathlib import Path
 import tomllib
 from typing import NamedTuple
+
+__all__ = ["Config", "load_config"]
 
 
 class Config(NamedTuple):

@@ -1,8 +1,12 @@
 """Output formatting and printing module."""
 
+from __future__ import annotations
+
 import json
 import sys
 from typing import Any
+
+__all__ = ["OutputFormatter"]
 
 
 class OutputFormatter:

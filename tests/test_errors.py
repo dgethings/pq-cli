@@ -1,38 +1,39 @@
-"""Test script to verify enhanced error messages."""
+"""Test enhanced error messages."""
 
-from pathlib import Path
-from pq.loader import load_document
-from pq.evaluator import evaluate_query, QueryEvaluationError
+import pytest
 
-
-def test_error_messages():
-    """Test that error messages are user-friendly."""
-    print("Loading test data...")
-    data = load_document(file_path=Path("tests/test_data.json"))
-    print()
-
-    test_cases = [
-        ("", "Empty expression"),
-        ("data['nonexistent']", "Missing key"),
-        ("invalid_var", "Invalid variable"),
-        ("data['items'][0]['name'](5)", "Calling a non-function"),
-        ("data['items'][999]", "Index out of range"),
-        ("data['items'][0] + 'string'", "Type error"),
-        ("data['items'[0]]", "Syntax error"),
-    ]
-
-    for query, description in test_cases:
-        print(f"Test: {description}")
-        print(f"Query: {query}")
-        try:
-            result = evaluate_query(query, data)
-            print(f"Result: {result}")
-        except QueryEvaluationError as e:
-            print(f"Error: {e}")
-        print()
-
-    print("All error message tests passed!")
+from pq.evaluator import QueryEvaluationError, evaluate_query
 
 
-if __name__ == "__main__":
-    test_error_messages()
+class TestErrorMessages:
+    def test_empty_expression_raises(self, test_data):
+        with pytest.raises(QueryEvaluationError, match="Please enter a query"):
+            evaluate_query("", test_data)
+
+    def test_missing_key_raises(self, test_data):
+        with pytest.raises(QueryEvaluationError, match="not found"):
+            evaluate_query("_['nonexistent_key']", test_data)
+
+    def test_invalid_variable_raises(self, test_data):
+        with pytest.raises(QueryEvaluationError, match="not available"):
+            evaluate_query("invalid_var", test_data)
+
+    def test_calling_non_function_raises(self, test_data):
+        with pytest.raises(QueryEvaluationError):
+            evaluate_query("_['items'][0]['name'](5)", test_data)
+
+    def test_index_out_of_range_raises(self, test_data):
+        with pytest.raises(QueryEvaluationError, match="Index out of range"):
+            evaluate_query("_['items'][999]", test_data)
+
+    def test_type_error_raises(self, test_data):
+        with pytest.raises(QueryEvaluationError, match="Type mismatch"):
+            evaluate_query("_['items'][0] + 'string'", test_data)
+
+    def test_syntax_error_raises(self, test_data):
+        with pytest.raises(QueryEvaluationError):
+            evaluate_query("def foo():", test_data)
+
+    def test_dunder_access_blocked(self, test_data):
+        with pytest.raises(QueryEvaluationError, match="dunder"):
+            evaluate_query("_.__class__", test_data)

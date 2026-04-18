@@ -1,5 +1,7 @@
 """Document loading and validation module."""
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Any
 from xml.parsers import expat
@@ -10,6 +12,14 @@ import xmltodict
 import yaml
 
 from pq.types import FileTypes
+
+__all__ = [
+    "DocumentLoadError",
+    "MAX_FILE_SIZE",
+    "load_document",
+    "content_from_file",
+    "load_content",
+]
 
 
 MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024

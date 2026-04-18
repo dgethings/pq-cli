@@ -46,6 +46,15 @@ jobs:
             uv run conventional-pre-commit feat fix perf chore docs test refactor style ci build /tmp/commit_msg.txt
           done
 
+      - name: Lint | Ruff check
+        run: uv run ruff check .
+
+      - name: Lint | Ruff format check
+        run: uv run ruff format --check .
+
+      - name: Test | Run tests
+        run: uv run pytest --tb=short
+
       - name: Build | Build next version artifacts
         id: version
         env:
