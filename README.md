@@ -444,3 +444,4 @@ Built with:
 
 - [Issue Tracker](https://github.com/dgethings/pq-cli/issues)
 - [Changelog](https://github.com/dgethings/pq-cli/blob/main/CHANGELOG.md)
+- [jello](https://github.com/kellyjonbrazil/jello) a CLI tool to filter JSON and JSON Lines data with Python syntax by [Kelly Brazil](https://github.com/kellyjonbrazil)
